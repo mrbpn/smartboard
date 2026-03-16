@@ -1,7 +1,65 @@
 # DeepBoard — Smart Classroom Platform
 
-AI-powered lesson management web app for Dahua DeepHub smartboards.
-Built with Next.js 14, TypeScript, Tailwind CSS, Zustand, Recharts, Socket.io.
+AI-powered lesson management for Dahua DeepHub smartboards.
+**Now with Supabase — real database, real auth, real storage.**
+
+---
+
+## Step 1 — Set up Supabase (5 minutes)
+
+1. Go to [supabase.com](https://supabase.com) → **New project**
+2. Choose a name, password, and region → **Create project**
+3. Wait ~2 minutes for it to spin up
+4. Go to **SQL Editor** → paste the entire contents of `supabase/migrations/001_initial.sql` → **Run**
+5. Go to **Project Settings → API** → copy:
+   - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+---
+
+## Step 2 — Add env vars to Vercel
+
+1. Go to your Vercel project → **Settings → Environment Variables**
+2. Add both variables:
+
+```
+NEXT_PUBLIC_SUPABASE_URL      = https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY = eyJhbGci...
+```
+
+3. Click **Save** → **Redeploy**
+
+That's it. The app is now fully live with a real database. ✓
+
+---
+
+## Local development
+
+```bash
+cp .env.example .env.local
+# Fill in your Supabase URL and anon key
+npm install
+npm run dev
+# → http://localhost:3000
+```
+
+---
+
+## What's connected to Supabase
+
+| Feature | Status |
+|---|---|
+| Auth (login / register / session) | ✓ Real |
+| Lessons — create, edit, delete | ✓ Real |
+| Slides — save per lesson | ✓ Real |
+| Quizzes — create, questions | ✓ Real |
+| Quiz sessions — launch, join code | ✓ Real |
+| Student responses | ✓ Real |
+| Whiteboard snapshots | ✓ Real |
+| Recordings metadata | ✓ Real |
+| Templates library (seeded) | ✓ Real |
+| File storage (media, avatars) | ✓ Real |
+| Row-level security | ✓ Enabled |
 
 ---
 
@@ -9,122 +67,15 @@ Built with Next.js 14, TypeScript, Tailwind CSS, Zustand, Recharts, Socket.io.
 
 | Route | Description |
 |---|---|
-| `/login` | Teacher sign-in |
-| `/register` | New account |
-| `/dashboard` | Overview, analytics, quick actions |
-| `/lessons` | Lesson library (grid, filter, search) |
-| `/lessons/new` | Create lesson — manual or AI-generated |
-| `/lessons/[id]` | Slide editor |
-| `/quizzes` | Quiz library + live session launcher |
-| `/quizzes/new` | Quiz builder + AI question generator |
-| `/whiteboard` | Full interactive canvas (pen, marker, eraser, shapes, OCR) |
-| `/recordings` | Session recordings with video player |
-| `/settings` | Profile, notifications, security, API keys |
-| `/join/[code]` | Student quiz join page (no auth) |
-
----
-
-## Deploy to Vercel (5 minutes)
-
-### 1. Push to GitHub
-
-```bash
-cd smartboard-app
-git init
-git add .
-git commit -m "Initial commit — DeepBoard"
-gh repo create smartboard-app --public --push
-```
-
-### 2. Import in Vercel
-
-1. Go to [vercel.com](https://vercel.com) → **Add New Project**
-2. Import your GitHub repo
-3. Framework: **Next.js** (auto-detected)
-4. Add environment variables (see below)
-5. Click **Deploy**
-
-### 3. Environment variables (set in Vercel dashboard)
-
-```
-NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
-NEXT_PUBLIC_API_URL=https://api.your-backend.com/v1
-NEXT_PUBLIC_WS_URL=wss://api.your-backend.com
-```
-
-> API keys (Gemini, Cloud Vision) go in the **backend** `.env` — never in Vercel.
-
----
-
-## Local development
-
-```bash
-npm install
-cp .env.example .env.local
-npm run dev
-# → http://localhost:3000
-```
-
-Demo credentials: `teacher@school.edu` / `password`
-
----
-
-## Project structure
-
-```
-src/
-├── app/                   # Next.js App Router pages
-│   ├── (auth)/            # Login + register (no sidebar)
-│   ├── dashboard/         # Main dashboard
-│   ├── lessons/           # Lesson management
-│   ├── quizzes/           # Quiz management + live sessions
-│   ├── whiteboard/        # Interactive canvas
-│   ├── recordings/        # Session recordings
-│   ├── settings/          # Account settings
-│   └── join/[code]/       # Student quiz join (public)
-├── components/
-│   ├── ui/                # Button, Card, Modal, Input, Badge, EmptyState
-│   ├── layout/            # Sidebar, AppLayout, PageHeader
-│   └── dashboard/         # StatCard
-├── lib/
-│   ├── api.ts             # Axios client + all API endpoints
-│   ├── store.ts           # Zustand auth store
-│   ├── utils.ts           # Helpers
-│   └── mock.ts            # Demo data (replace with real API)
-├── types/
-│   └── index.ts           # All TypeScript interfaces
-└── styles/
-    └── globals.css        # Cormorant Garamond + DM Sans + animations
-```
-
----
-
-## Connecting to the backend
-
-Replace mock data with real API calls:
-
-```typescript
-// Example: replace MOCK_LESSONS in lessons/page.tsx
-import { lessonsApi } from "@/lib/api";
-const { data } = await lessonsApi.list({ status: "published" });
-```
-
-All API functions are ready in `src/lib/api.ts`.
-
----
-
-## Tech stack
-
-| Layer | Choice |
-|---|---|
-| Framework | Next.js 14 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS + custom design system |
-| State | Zustand (auth + persist) |
-| Forms | React Hook Form + Zod |
-| Charts | Recharts |
-| Icons | Lucide React |
-| HTTP | Axios (auto JWT refresh) |
-| Real-time | Socket.io client |
-| Fonts | Cormorant Garamond + DM Sans + DM Mono |
-| Deploy | Vercel |
+| `/login` | Supabase email auth |
+| `/register` | Creates account + profile |
+| `/dashboard` | Live stats from DB + recent lessons |
+| `/lessons` | Real lesson list, search, filter, delete |
+| `/lessons/new` | Create lesson — manual or AI |
+| `/lessons/[id]` | Slide editor — saves to DB |
+| `/quizzes` | Real quiz list + live session launcher |
+| `/quizzes/new` | Quiz builder — saves to DB |
+| `/whiteboard` | Canvas + OCR — saves snapshots |
+| `/recordings` | Recording library |
+| `/settings` | Profile updates, notifications, API status |
+| `/join/[code]` | Student quiz join — no auth needed |
