@@ -7,6 +7,8 @@ import { z } from "zod";
 import { Mail, Lock } from "lucide-react";
 import { authDb } from "@/lib/db";
 import Button from "@/components/ui/Button";
+import { loginAction } from "@/app/actions/auth"; // Import the server action
+
 
 const schema = z.object({
   email:    z.string().email("Enter a valid email"),
@@ -20,13 +22,23 @@ export default function LoginPage() {
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   async function onSubmit(data: FormData) {
+    // try {
+    //   await authDb.signIn(data.email, data.password);
+    //   router.push("/dashboard");
+    //   router.refresh();
+    // } catch (err: unknown) {
+    //   setError("root", { message: err instanceof Error ? err.message : "Invalid credentials" });
+    // }
+
     try {
-      await authDb.signIn(data.email, data.password);
-      router.push("/dashboard");
-      router.refresh();
-    } catch (err: unknown) {
-      setError("root", { message: err instanceof Error ? err.message : "Invalid credentials" });
-    }
+    // Call the server action, not the database directly
+    await loginAction(data.email, data.password);
+    
+    router.push("/dashboard");
+    router.refresh();
+  } catch (err: unknown) {
+    setError("root", { message: "Invalid credentials" });
+  }
   }
 
   return (
