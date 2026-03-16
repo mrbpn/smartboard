@@ -2,6 +2,7 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "./schema";
 
+
 // Lazy — only throws at query time, not at module load
 // This prevents Vercel from silently returning 404 on missing env var
 function getDb() {
@@ -26,3 +27,7 @@ export const db = new Proxy({} as ReturnType<typeof getDb>, {
 });
 
 export type DB = ReturnType<typeof getDb>;
+
+
+export const authDb = db;
+export const lessonsDb = db;
