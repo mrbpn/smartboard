@@ -9,6 +9,7 @@ config({ path: ".env.local" });
 
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
+import { eq } from "drizzle-orm";
 import * as schema from "../src/lib/schema";
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -48,7 +49,7 @@ async function main() {
   const [existingTeacher] = await db
     .select()
     .from(schema.users)
-    .where((eq: (col: typeof schema.users.email, val: string) => unknown) => eq(schema.users.email, "teacher@school.edu"))
+    .where(eq(schema.users.email, "teacher@school.edu"))
     .limit(1);
 
   const teacherId = teacher?.id ?? existingTeacher?.id;
