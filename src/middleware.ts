@@ -1,43 +1,38 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { jwtVerify } from "jose";
+
+const SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET ?? "dev-secret-change-in-production"
+);
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return request.cookies.getAll(); },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
-
   const { pathname } = request.nextUrl;
-  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/register");
-  const isPublicRoute = pathname.startsWith("/join") || pathname === "/";
 
-  // Redirect unauthenticated users to login
-  if (!user && !isAuthRoute && !isPublicRoute) {
+  const isAuthRoute   = pathname.startsWith("/login") || pathname.startsWith("/register");
+  const isPublicRoute = pathname.startsWith("/join") || pathname.startsWith("/api") || pathname === "/";
+
+  // Don't touch API routes or public routes
+  if (isPublicRoute) return NextResponse.next();
+
+  const token = request.cookies.get("sb_token")?.value;
+
+  // No token — redirect to login
+  if (!token) {
+    if (isAuthRoute) return NextResponse.next();
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Redirect authenticated users away from auth pages
-  if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // Verify token
+  try {
+    await jwtVerify(token, SECRET);
+    // Valid token on auth page — redirect to dashboard
+    if (isAuthRoute) return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.next();
+  } catch {
+    // Invalid/expired token — redirect to login
+    if (isAuthRoute) return NextResponse.next();
+    return NextResponse.redirect(new URL("/login", request.url));
   }
-
-  return supabaseResponse;
 }
 
 export const config = {
