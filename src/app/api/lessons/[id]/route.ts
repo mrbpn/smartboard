@@ -56,7 +56,7 @@ export async function PATCH(req: Request, { params }: Params) {
     }
 
     const [updated] = await db.update(lessons)
-      .set(updates as Parameters<typeof db.update>[0] extends infer T ? T : never)
+  .set(updates as Partial<typeof lessons.$inferInsert>)
       .where(and(eq(lessons.id, id), eq(lessons.teacher_id, session.userId)))
       .returning();
 
